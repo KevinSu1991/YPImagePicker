@@ -45,22 +45,42 @@ extension AVAsset {
                 videoComposition: AVVideoComposition? = nil,
                 removeOldFile: Bool = false,
                 completion: @escaping (_ exportSession: AVAssetExportSession) -> Void) -> AVAssetExportSession? {
-        guard let exportSession = AVAssetExportSession(asset: self, presetName: YPConfig.video.compression) else {
-            print("YPImagePicker -> AVAsset -> Could not create an export session.")
-            return nil
-        }
-        
-        exportSession.outputURL = destination
-        exportSession.outputFileType = YPConfig.video.fileType
-        exportSession.shouldOptimizeForNetworkUse = true
-        exportSession.videoComposition = videoComposition
-        
-        if removeOldFile { try? FileManager.default.removeFileIfNecessary(at: destination) }
-        
-        exportSession.exportAsynchronously(completionHandler: {
-            completion(exportSession)
-        })
+//        guard let exportSession = AVAssetExportSession(asset: self, presetName: YPConfig.video.compression) else {
+//            print("YPImagePicker -> AVAsset -> Could not create an export session.")
+//            return nil
+//        }
+//
+//        exportSession.outputURL = destination
+//        exportSession.outputFileType = YPConfig.video.fileType
+//        exportSession.shouldOptimizeForNetworkUse = true
+//        exportSession.videoComposition = videoComposition
+//
+//        if removeOldFile { try? FileManager.default.removeFileIfNecessary(at: destination) }
+//
+//        exportSession.exportAsynchronously(completionHandler: {
+//            completion(exportSession)
+//        })
 
+        let exportSession = AVAssetExportSession.init(asset: self, presetName: AVAssetExportPresetHighestQuality)
+        exportSession?.outputURL = destination
+        exportSession?.outputFileType = AVFileType.mp4
+
+        let start = Date().timeIntervalSince1970
+        DispatchQueue.main.async {
+            debugPrint("======start at : \(start)")
+        }
+
+        exportSession?.exportAsynchronously(completionHandler: {
+            DispatchQueue.main.async {
+                let end = Date().timeIntervalSince1970
+                debugPrint("======completed at : \(end)")
+                debugPrint("======cost : \(end - start)s")
+                completion(exportSession!)
+//                self.videoPlayer.url = destinationURL
+//                self.videoPlayer.playFromBeginning()
+            }
+        })
+        
         return exportSession
     }
 }
